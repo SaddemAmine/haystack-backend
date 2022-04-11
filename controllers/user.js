@@ -185,11 +185,76 @@ exports.changePassword = async (req, res) => {
 
         }
     }
-
-
-
 }
 
+exports.followUser = async (req, res) => {
+    if (!req.body.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.body.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }else{
+            const follower = await User.findById(req.body.followerId);
+            if(!follower){
+                await res.status(404).json({
+                    error: "follower not in database"
+                });
+            }else{
+                try {
+                    await User.updateOne(
+                        {_id:user._id},
+                        {$push:{followers:follower._id}}
+                    )
+                    await User.updateOne(
+                        {_id:follower._id},
+                        {$push:{following:user._id}}
+                    )
+                    res.status(200).end("User followed successfully!");
+                }catch (e) {
+                    res.status(500).end(e);
+                }
+            }
+        }
+    }
+}
 
-
-
+exports.unfollowUser = async (req, res) => {
+    if (!req.body.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.body.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }else{
+            const follower = await User.findById(req.body.followerId);
+            if(!follower){
+                await res.status(404).json({
+                    error: "follower not in database"
+                });
+            }else{
+                try {
+                    await User.updateOne(
+                        {_id:user._id},
+                        {$pull:{followers:follower._id}}
+                    )
+                    await User.updateOne(
+                        {_id:follower._id},
+                        {$pull:{following:user._id}}
+                    )
+                    res.status(200).end("User unfollowed successfully!");
+                }catch (e) {
+                    res.status(500).end(e);
+                }
+            }
+        }
+    }
+}
