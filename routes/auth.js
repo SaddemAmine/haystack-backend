@@ -5,6 +5,8 @@ const userController = require("../controllers/user");
 
 router.route('/login')
     .post( userController.login)
+router.route('/google/login')
+    .post( userController.googleLogin)
 router.route('/register')
     .post( userController.createUser)
 
