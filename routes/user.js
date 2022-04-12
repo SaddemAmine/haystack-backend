@@ -22,6 +22,8 @@ router.route('/follow')
 router.route('/unfollow')
     .post(userController.unfollowUser)
 
+router.route('/:id/following/:followerId')
+    .get(userController.checkFollowing)
 // router.route('/login/google')
 //     .get(passport.authenticate('google'))
 // .delete(userController.delete);
