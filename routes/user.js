@@ -11,13 +11,19 @@ router.route('/')
 router.route('/:id')
     .get(userController.getUser)
     .put(userController.updateUser)
-    .delete(userController.deleteUser);
+    .delete(userController.deleteUser)
+
 router.route('/changePassword/:id')
     .post(userController.changePassword)
 
+router.route('/follow')
+    .post(userController.followUser)
 
+router.route('/unfollow')
+    .post(userController.unfollowUser)
 
-
+router.route('/:id/following/:followerId')
+    .get(userController.checkFollowing)
 // router.route('/login/google')
 //     .get(passport.authenticate('google'))
 // .delete(userController.delete);
