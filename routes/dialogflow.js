@@ -37,11 +37,22 @@ router.post('/textQuery', async (req, res) => {
 
     // Send request and log result
     const responses = await sessionClient.detectIntent(request);
-    console.log('Detected intent');
     const result = responses[0].queryResult;
+    console.log('Detected intent', result.intent.displayName);
     console.log(`  Query: ${result.queryText}`);
     console.log(`  Response: ${result.fulfillmentText}`);
-
+    if(result.intent.displayName === "createaccount") {
+        if(result.fulfillmentText.includes("lastname")) {
+            console.log('firstname',result.queryText);
+        }else if (result.fulfillmentText.includes("email")){
+            console.log('lastname',result.queryText);
+        }else if (result.fulfillmentText.includes("password")){
+            console.log('email',result.queryText);
+        }
+        else if (result.fulfillmentText.includes("created")){
+            console.log('password',result.queryText);
+        }
+    }
     res.send(result)
 })
 
@@ -66,7 +77,7 @@ router.post('/eventQuery', async (req, res) => {
 
     // Send request and log result
     const responses = await sessionClient.detectIntent(request);
-    console.log('Detected intent');
+    console.log('USER');
     const result = responses[0].queryResult;
     console.log(`  Query: ${result.queryText}`);
     console.log(`  Response: ${result.fulfillmentText}`);
