@@ -1,8 +1,31 @@
+
+
+
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 
+exports.getUserByEmail= async (req,res)=> {
+    if (!req.params.email) {
+        res.json({
+            error: "Email Not Found"
+        });
+    }
+    else {
+        const user = await User.find({email:req.params.email});
+        if (!user) {
+            res.json({
+                error: "user Not Found"
+            });
+        }
+        else {
+            res.json({
+                user
+            });
+        }
+    }
+}
 
 exports.getUsers = async (req, res, next) => {
     console.log(req);
@@ -128,6 +151,34 @@ exports.login = async (req, res, next) => {
 
     }
 };
+
+exports.googleLogin = async (req, res) => {
+    if (!req.body.email) {
+        res.json({
+            error: "google id not valid"
+        })
+    }
+    const user = await User.findOne({email: req.body.email});
+    if (!user) {
+        await res.json({
+            error: "Cannot find user"
+        })
+    } else {
+        const token = await jwt.sign(
+            {
+                userId: user._id.toString(),
+                email: user.email
+            },
+            'haystack',
+        );
+        await res.json({
+            token: token,
+            user: user,
+            role: 'User'
+        });
+    }
+}
+
 exports.createUser = async (req, res, next) => {
     if (!validator.isEmail(req.body.email.trim().toLowerCase())) {
         res.json({
@@ -145,8 +196,14 @@ exports.createUser = async (req, res, next) => {
             user.experience = 0
             user.newLevelExperience = 0
             user.email = req.body.email.trim().toLowerCase();
-            user.password = await bcrypt.hash(req.body.password, 12);
-            user.isVerified = false;
+            if(req.body.password){
+                user.password = await bcrypt.hash(req.body.password, 12);
+                user.isVerified = false;
+            }else{
+                user.password = null
+                user.isVerified = true
+            }
+
             await user.save()
                 .then(user => {
                     res.json({
@@ -185,11 +242,109 @@ exports.changePassword = async (req, res) => {
 
         }
     }
-
-
-
 }
 
+exports.followUser = async (req, res) => {
+    if (!req.body.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.body.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }else{
+            const follower = await User.findById(req.body.followerId);
+            if(!follower){
+                await res.status(404).json({
+                    error: "follower not in database"
+                });
+            }else{
+                try {
+                    await User.updateOne(
+                        {_id:user._id},
+                        {$push:{followers:follower._id}}
+                    )
+                    await User.updateOne(
+                        {_id:follower._id},
+                        {$push:{following:user._id}}
+                    )
+                    res.status(200).json({message: "User followed successfully!"});
+                }catch (e) {
+                    res.status(500).json({error: e});
+                }
+            }
+        }
+    }
+}
 
+exports.unfollowUser = async (req, res) => {
+    if (!req.body.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.body.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }else{
+            const follower = await User.findById(req.body.followerId);
+            if(!follower){
+                await res.status(404).json({
+                    error: "follower not in database"
+                });
+            }else{
+                try {
+                    await User.updateOne(
+                        {_id:user._id},
+                        {$pull:{followers:follower._id}}
+                    )
+                    await User.updateOne(
+                        {_id:follower._id},
+                        {$pull:{following:user._id}}
+                    )
+                    res.status(200).json({message: "User unfollowed successfully!"});
+                }catch (e) {
+                    res.status(500).json({error: e});
+                }
+            }
+        }
+    }
+}
 
-
+exports.checkFollowing = async (req, res) => {
+    if (!req.params.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.params.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }else{
+            const follower = await User.findById(req.params.followerId);
+            if(!follower){
+                await res.status(404).json({
+                    error: "follower not in database"
+                });
+            }else{
+                try {
+                    const isFollowing = await User.findOne({_id:user._id,followers:follower._id})
+                    if(isFollowing){
+                        res.json({following: true});
+                    }else{
+                        res.json({following: false});
+                    }
+                }catch (e) {
+                    res.status(500).end(e);
+                }
+            }
+        }
+    }
+}
