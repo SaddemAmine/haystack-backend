@@ -11,6 +11,10 @@ router.route('/')
 router.route('/:id')
     .get(userController.getUser)
     .put(userController.updateUser)
+    .delete(userController.deleteUser);
+
+router.route('/email/:email')
+    .get(userController.getUserByEmail)
     .delete(userController.deleteUser)
 
 router.route('/changePassword/:id')
