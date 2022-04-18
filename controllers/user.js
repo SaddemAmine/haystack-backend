@@ -2,6 +2,8 @@
 
 
 const User = require('../models/user');
+const Product = require('../models/product');
+
 const bcrypt = require('bcryptjs');
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
@@ -345,6 +347,37 @@ exports.checkFollowing = async (req, res) => {
                     res.status(500).end(e);
                 }
             }
+        }
+    }
+}
+
+exports.generateFeed = async (req, res) => {
+    if (!req.params.id) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        const user = await User.findById(req.params.id);
+        if(!user){
+            await res.status(404).json({
+                error: "user not in database"
+            });
+        }
+        else{
+            console.log(user)
+
+            let products = user.followers.map(async follower => {
+                const result = await Product.find({owner: follower}).exec()
+                return result
+            })
+
+            for(let i = 0; i < products.length; i++){
+                products[i] = await products[i]
+            }
+            
+            console.log(products)
+
+            res.status(200).json({product: products.flat().reverse()});
         }
     }
 }
