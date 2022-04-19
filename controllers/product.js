@@ -58,12 +58,14 @@ exports.getMyProducts = async (req, res, next) => {
 
 exports.create = async (req, res) => {
     if (!req.isAuth) {
+        console.log("NO AUTH")
         await res.json({
             error: "Not Auth"
         });
     }
     else {
         try {
+            console.log("HEERE")
             const product = new Product(req.body);
             console.log(product)
             product.owner = req.userId;
@@ -112,7 +114,7 @@ exports.remove = async (req, res, next) =>  {
         if (product.stock != 1 )
             await res.json("CONFLICT");
         else {
-            Product.findByIdAndDelete(req.params.id);
+            await Product.findByIdAndDelete(req.params.id);
             await res.status(200).json("Product deleted");
         }
     } catch (error) {

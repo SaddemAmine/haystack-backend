@@ -63,7 +63,7 @@ exports.edit = async (req, res, next) => {
 
 exports.remove = async (req, res, next) =>  {
     try {
-        Category.findByIdAndDelete(req.params.id);
+        await Category.findByIdAndDelete(req.params.id);
         await res.status(200).json("Category deleted");
     } catch (error) {
         console.log(error.message);
