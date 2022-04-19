@@ -50,7 +50,7 @@ exports.edit = async (req, res, next) => {
         else {
             const category = new Category(req.body);
             category._id = req.params.id;
-            const updatedCategory = await Category.findByIdAndUpdate(req.params.id, category);
+            const updatedCategory = await Category.findByIdAndUpdate(req.params.id, category, { new: true });
             await res.json({updatedCategory});
         }
     } catch (error) {
