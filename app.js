@@ -2,11 +2,19 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require("http")
 
 const indexRouter = require('./routes/index');
 const auth = require('./middlewares/auth');
 
 const app = express();
+const server = http.createServer(app)
+const io = require("socket.io")(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: [ "GET", "POST" ]
+    }
+})
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -19,14 +27,12 @@ app.use(auth)
 
 app.use('/', indexRouter);
 app.use('/api/dialogflow', require('./routes/dialogflow'));
-
 const multipart = require('connect-multiparty');
 const multipartMiddleware = multipart({
     uploadDir: './files'
 });
 
 app.post('/uploads', multipartMiddleware, (req, res) => {
-    console.log(req.files);
     res.json({
         'message': 'File uploaded succesfully.',
         'name': req.files.uploads[0].path.split("\\")[1]
@@ -41,6 +47,22 @@ app.get('/files/:name', async (req, res, next) => {
         (error)=> console.log(error));
 
 });
+
+io.on("connection", (socket) => {
+    socket.emit("me", socket.id)
+
+    socket.on("disconnect", () => {
+        socket.broadcast.emit("callEnded")
+    })
+
+    socket.on("callUser", (data) => {
+        io.to(data.userToCall).emit("callUser", { signal: data.signalData, from: data.from, name: data.name })
+    })
+
+    socket.on("answerCall", (data) => {
+        io.to(data.to).emit("callAccepted", data.signal)
+    })
+})
 
 
 mongoose.connect(
