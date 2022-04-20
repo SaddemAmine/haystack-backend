@@ -49,6 +49,7 @@ app.get('/files/:name', async (req, res, next) => {
 });
 
 io.on("connection", (socket) => {
+    console.log("a user connected");
     socket.emit("me", socket.id)
 
     socket.on("disconnect", () => {
@@ -62,6 +63,9 @@ io.on("connection", (socket) => {
     socket.on("answerCall", (data) => {
         io.to(data.to).emit("callAccepted", data.signal)
     })
+    // socket.on("leaveCall", (data) => {
+    //     socket.broadcast.emit(data)
+    // })
 })
 
 
@@ -71,7 +75,7 @@ mongoose.connect(
         {useUnifiedTopology: true ,  useNewUrlParser: true }
     )
     .then(result => {
-        app.listen(8080);
+        server.listen(8080);
         console.log("Running on 8080 !")
     })
     .catch(err => console.log(err));

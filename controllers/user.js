@@ -32,6 +32,7 @@ exports.getUserByEmail= async (req,res)=> {
 exports.getUsers = async (req, res, next) => {
     console.log(req);
     if (!req.isAuth) {
+        console.log("no auth");
         await res.json({
             error: "Not Auth"
         });
