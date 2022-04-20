@@ -67,7 +67,6 @@ exports.create = async (req, res) => {
         try {
             console.log("HEERE")
             const product = new Product(req.body);
-            console.log(product)
             product.owner = req.userId;
             await product.save();
             const user = await User.findById(req.userId);
