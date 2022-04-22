@@ -377,7 +377,7 @@ exports.generateFeed = async (req, res) => {
             
             console.log(products)
 
-            res.status(200).json({product: products.flat().reverse()});
+            res.status(200).json({products: products.flat().reverse()});
         }
     }
 }
