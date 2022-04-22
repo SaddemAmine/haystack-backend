@@ -58,14 +58,15 @@ exports.getMyProducts = async (req, res, next) => {
 
 exports.create = async (req, res) => {
     if (!req.isAuth) {
+        console.log("NO AUTH")
         await res.json({
             error: "Not Auth"
         });
     }
     else {
         try {
+            console.log("HEERE")
             const product = new Product(req.body);
-            console.log(product)
             product.owner = req.userId;
             await product.save();
             const user = await User.findById(req.userId);
@@ -90,9 +91,13 @@ exports.edit = async (req, res, next) => {
         }
         else {
             const product = new Product(req.body);
-            product._id = req.params.id;
-            const updatedProduct = await Product.findByIdAndUpdate(req.params.id, product);
-            await res.json({updatedProduct});
+            if (product.stock != 1 )
+                await res.json("CONFLICT");
+            else {
+                product._id = req.params.id;
+                const updatedProduct = await Product.findByIdAndUpdate(req.params.id, product, {new: true});
+                await res.json({updatedProduct});
+            }
         }
     } catch (error) {
         console.log(error.message);
@@ -104,8 +109,13 @@ exports.edit = async (req, res, next) => {
 
 exports.remove = async (req, res, next) =>  {
     try {
-        Product.deleteOne(req.params.id);
-        await res.status(200).json("Product deleted");
+        const product = await Product.findById(req.params.id);
+        if (product.stock != 1 )
+            await res.json("CONFLICT");
+        else {
+            await Product.findByIdAndDelete(req.params.id);
+            await res.status(200).json("Product deleted");
+        }
     } catch (error) {
         console.log(error.message);
         await res.json({
