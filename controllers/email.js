@@ -33,7 +33,6 @@ smtpTransport.use('compile', hbs(handlebarOptions))
 
 ///send
 exports.send=async  (req,res, next)=>{
-    console.log(req.params.id)
     userId = req.params.id;
     host=req.get('host');
     link="http://"+req.get('host')+"/email/verify/"+userId;
@@ -61,8 +60,6 @@ exports.send=async  (req,res, next)=>{
 };
 
 exports.verify=async  (req,res, next)=>{
-
-    console.log(req.protocol+":/"+req.get('host'));
     if((req.protocol+"://"+req.get('host'))===("http://"+host))
     {
         console.log("Domain is matched. Information is from Authentic email");
