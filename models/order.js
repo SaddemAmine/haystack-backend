@@ -10,12 +10,10 @@ const OrderSchema = new mongoose.Schema(
                 }
             },
         ],
-        // products:{ type: Schema.Types.ObjectID, ref: 'Product'},
-        //
-
+        email: {type: String},
         amount: { type: Number,  },
         address: { type: Object,  },
-        status: { type: String, default: "pending" },
+        status: { type: Boolean,default: false},
     },
     { timestamps: true }
 );
