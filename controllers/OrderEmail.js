@@ -53,7 +53,7 @@ exports.send=async  (req,res)=>{
             template: 'OrderEmail', // the name of the template file i.e email.handlebars
             context:{
                 country : order.address.country,
-               city : order.address.city,
+                city : order.address.city,
                 email: order.email,
                 link : "http://localhost:3000",
                 code : order._id,
@@ -72,5 +72,3 @@ exports.send=async  (req,res)=>{
     }
 
 };
-
-
