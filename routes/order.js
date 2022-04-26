@@ -9,6 +9,10 @@ router.post("/",  async (req, res) => {
     const newOrder = new Order(req.body);
 
     try {
+        for (const product of newOrder.products) {
+           product.stock = 0;
+           await product.save();
+        }
         const savedOrder = await newOrder.save();
         res.status(200).json(savedOrder);
     } catch (err) {
