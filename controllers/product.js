@@ -1,6 +1,6 @@
 const Product = require('../models/product');
 const User = require('../models/user');
-const ColorThief = require('colorthief');
+const getColors = require('get-image-colors');
 const path = require("path");
 const rgbToHex = require("rgb-to-hex");
 const nearestColor = require('nearest-color').from({
@@ -83,23 +83,15 @@ exports.create = async (req, res) => {
 
             // color recognition
 
-            const jsonPath = path.join(__dirname, '..', 'files', product.image);
+            await getColors(path.join(__dirname, '..', 'files', product.image)).then(async colors => {
+                product.color = await nearestColor('#' + rgbToHex(`rgb(${colors[0]._rgb[0]}, ${colors[0]._rgb[1]}, ${colors[0]._rgb[2]})`)).name;
+                await product.save();
+                const user = await User.findById(req.userId);
+                await user.products.push(product._id);
+                await user.save();
+                await res.json({product});
+            });
 
-            await ColorThief.getColor(jsonPath)
-                .then(async color => {
-                    console.log(color)
-                    console.log(rgbToHex(`rgb(${color[0]}, ${color[1]}, ${color[2]})`));
-
-                    console.log(nearestColor('#' + rgbToHex(`rgb(${color[0]}, ${color[1]}, ${color[2]})`)).name)
-                    product.color = await nearestColor('#' + rgbToHex(`rgb(${color[0]}, ${color[1]}, ${color[2]})`)).name;
-                    await product.save();
-                    const user = await User.findById(req.userId);
-                    await user.products.push(product._id);
-                    await user.save();
-                    await res.json({product});
-
-                })
-                .catch(err => { console.log(err) })
 
 
         } catch (error) {
@@ -128,6 +120,13 @@ exports.edit = async (req, res, next) => {
 
 
                 // color recognition
+                await getColors(path.join(__dirname, '..', 'files', product.image)).then(async colors => {
+                    updatedProduct.color = await nearestColor('#' + rgbToHex(`rgb(${colors[0]._rgb[0]}, ${colors[0]._rgb[1]}, ${colors[0]._rgb[2]})`)).name;
+                    await updatedProduct.save();
+                    await res.json({updatedProduct});
+                });
+
+
                 const jsonPath = path.join(__dirname, '..', 'files', product.image);
 
                 await ColorThief.getColor(jsonPath)
