@@ -25,7 +25,7 @@ router.route('/unfollow')
 router.route('/:id/following/:followerId')
     .get(userController.checkFollowing)
 
-router.route('/feed/:id')
+router.route('/feed/:id/:step?')
     .get(userController.generateFeed)
 
 // router.route('/login/google')
