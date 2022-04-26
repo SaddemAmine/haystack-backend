@@ -26,7 +26,6 @@ app.use(auth)
 // app.use(passport.session());
 
 app.use('/', indexRouter);
-app.use('/api/dialogflow', require('./routes/dialogflow'));
 const multipart = require('connect-multiparty');
 const multipartMiddleware = multipart({
     uploadDir: './files'
