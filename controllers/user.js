@@ -1,3 +1,6 @@
+
+
+
 const User = require('../models/user');
 const Product = require('../models/product');
 
@@ -5,10 +8,31 @@ const bcrypt = require('bcryptjs');
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 
+exports.getUserByEmail= async (req,res)=> {
+    if (!req.params.email) {
+        res.json({
+            error: "Email Not Found"
+        });
+    }
+    else {
+        const user = await User.find({email:req.params.email});
+        if (!user) {
+            res.json({
+                error: "user Not Found"
+            });
+        }
+        else {
+            res.json({
+                user
+            });
+        }
+    }
+}
 
 exports.getUsers = async (req, res, next) => {
     console.log(req);
     if (!req.isAuth) {
+        console.log("no auth");
         await res.json({
             error: "Not Auth"
         });
@@ -130,6 +154,34 @@ exports.login = async (req, res, next) => {
 
     }
 };
+
+exports.googleLogin = async (req, res) => {
+    if (!req.body.email) {
+        res.json({
+            error: "google id not valid"
+        })
+    }
+    const user = await User.findOne({email: req.body.email});
+    if (!user) {
+        await res.json({
+            error: "Cannot find user"
+        })
+    } else {
+        const token = await jwt.sign(
+            {
+                userId: user._id.toString(),
+                email: user.email
+            },
+            'haystack',
+        );
+        await res.json({
+            token: token,
+            user: user,
+            role: 'User'
+        });
+    }
+}
+
 exports.createUser = async (req, res, next) => {
     if (!validator.isEmail(req.body.email.trim().toLowerCase())) {
         res.json({
@@ -147,8 +199,14 @@ exports.createUser = async (req, res, next) => {
             user.experience = 0
             user.newLevelExperience = 0
             user.email = req.body.email.trim().toLowerCase();
-            user.password = await bcrypt.hash(req.body.password, 12);
-            user.isVerified = false;
+            if(req.body.password){
+                user.password = await bcrypt.hash(req.body.password, 12);
+                user.isVerified = false;
+            }else{
+                user.password = null
+                user.isVerified = true
+            }
+
             await user.save()
                 .then(user => {
                     res.json({
@@ -161,6 +219,39 @@ exports.createUser = async (req, res, next) => {
 
     }
 };
+exports.chatbotcreate = async (user1) => {
+    console.log('test test nini nini nini')
+    if (!validator.isEmail(user1.email.trim().toLowerCase())) {
+        return
+    }else{
+        let  user = await User.findOne({email:user1.email.trim().toLowerCase()})
+        if (user) {
+
+            return(   'error: "User already exists !"')
+
+        }else{
+            user = new User(user1);
+            user.level = 0
+            user.experience = 0
+            user.newLevelExperience = 0
+            user.email = user1.email.trim().toLowerCase();
+            if(user1.password){
+                user.password = await bcrypt.hash(user1.password, 12);
+                user.isVerified = false;
+            }else{
+                user.password = null
+                user.isVerified = true
+            }
+
+            await user.save()
+                .then(user => {
+                    console.log('wiouuuuu')
+                })
+
+        }
+
+    }
+}
 
 exports.changePassword = async (req, res) => {
     if (!req.params.id) {

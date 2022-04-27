@@ -1,5 +1,17 @@
 const Product = require('../models/product');
 const User = require('../models/user');
+const getColors = require('get-image-colors');
+const path = require("path");
+const rgbToHex = require("rgb-to-hex");
+const nearestColor = require('nearest-color').from({
+    red: '#f00',
+    yellow: '#ff0',
+    blue: '#00f',
+    white: '#fff',
+    black: '#000',
+    purple: '#800080',
+    green: '#008000'
+});
 
 exports.list = async (req, res, next) => {
     const products = await Product.find();
@@ -58,20 +70,30 @@ exports.getMyProducts = async (req, res, next) => {
 
 exports.create = async (req, res) => {
     if (!req.isAuth) {
+        console.log("NO AUTH")
         await res.json({
             error: "Not Auth"
         });
     }
     else {
         try {
+            console.log("HEERE")
             const product = new Product(req.body);
-            console.log(product)
             product.owner = req.userId;
-            await product.save();
-            const user = await User.findById(req.userId);
-            await user.products.push(product._id);
-            await user.save();
-            await res.json({product});
+
+            // color recognition
+
+            await getColors(path.join(__dirname, '..', 'files', product.image)).then(async colors => {
+                product.color = await nearestColor('#' + rgbToHex(`rgb(${colors[0]._rgb[0]}, ${colors[0]._rgb[1]}, ${colors[0]._rgb[2]})`)).name;
+                await product.save();
+                const user = await User.findById(req.userId);
+                await user.products.push(product._id);
+                await user.save();
+                await res.json({product});
+            });
+
+
+
         } catch (error) {
             console.log(error.message);
             await res.json({
@@ -90,9 +112,31 @@ exports.edit = async (req, res, next) => {
         }
         else {
             const product = new Product(req.body);
-            product._id = req.params.id;
-            const updatedProduct = await Product.findByIdAndUpdate(req.params.id, product);
-            await res.json({updatedProduct});
+            if (product.stock != 1 )
+                await res.json("CONFLICT");
+            else {
+                product._id = req.params.id;
+                const updatedProduct = await Product.findByIdAndUpdate(req.params.id, product, {new: true});
+
+
+                // color recognition
+                await getColors(path.join(__dirname, '..', 'files', product.image)).then(async colors => {
+                    updatedProduct.color = await nearestColor('#' + rgbToHex(`rgb(${colors[0]._rgb[0]}, ${colors[0]._rgb[1]}, ${colors[0]._rgb[2]})`)).name;
+                    await updatedProduct.save();
+                    await res.json({updatedProduct});
+                });
+
+
+                const jsonPath = path.join(__dirname, '..', 'files', product.image);
+
+                await ColorThief.getColor(jsonPath)
+                    .then(async color => {
+                        updatedProduct.color = await nearestColor('#' + rgbToHex(`rgb(${color[0]}, ${color[1]}, ${color[2]})`)).name;
+                        await updatedProduct.save();
+                        await res.json({updatedProduct});
+                    })
+                    .catch(err => { console.log(err) })
+            }
         }
     } catch (error) {
         console.log(error.message);
@@ -104,8 +148,13 @@ exports.edit = async (req, res, next) => {
 
 exports.remove = async (req, res, next) =>  {
     try {
-        Product.deleteOne(req.params.id);
-        await res.status(200).json("Product deleted");
+        const product = await Product.findById(req.params.id);
+        if (product.stock != 1 )
+            await res.json("CONFLICT");
+        else {
+            await Product.findByIdAndDelete(req.params.id);
+            await res.status(200).json("Product deleted");
+        }
     } catch (error) {
         console.log(error.message);
         await res.json({
