@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const Product = require("../models/product");
 
 
 const router = require("express").Router();
@@ -7,8 +8,14 @@ const router = require("express").Router();
 
 router.post("/",  async (req, res) => {
     const newOrder = new Order(req.body);
+    let prod;
 
     try {
+        for (const productId of newOrder.products) {
+            prod = await Product.findById(productId);
+            prod.stock = 0;
+            await prod.save();
+        }
         const savedOrder = await newOrder.save();
         res.status(200).json(savedOrder);
     } catch (err) {

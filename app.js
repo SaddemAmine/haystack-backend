@@ -26,7 +26,6 @@ app.use(auth)
 // app.use(passport.session());
 
 app.use('/', indexRouter);
-app.use('/api/dialogflow', require('./routes/dialogflow'));
 const multipart = require('connect-multiparty');
 const multipartMiddleware = multipart({
     uploadDir: './files'
@@ -70,10 +69,10 @@ io.on("connection", (socket) => {
 
 
 mongoose.connect(
-        //'mongodb+srv://haystack:haystack@cluster0.bwzed.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
-        'mongodb+srv://haystack:haystack@haystack.0ialh.mongodb.net/haystack?retryWrites=true&w=majority',
-        {useUnifiedTopology: true ,  useNewUrlParser: true }
-    )
+    //'mongodb+srv://haystack:haystack@cluster0.bwzed.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+    'mongodb+srv://haystack:haystack@haystack.0ialh.mongodb.net/haystack?retryWrites=true&w=majority',
+    {useUnifiedTopology: true ,  useNewUrlParser: true }
+)
     .then(result => {
         server.listen(8080);
         console.log("Running on 8080 !")

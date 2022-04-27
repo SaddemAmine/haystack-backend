@@ -219,6 +219,39 @@ exports.createUser = async (req, res, next) => {
 
     }
 };
+exports.chatbotcreate = async (user1) => {
+    console.log('test test nini nini nini')
+    if (!validator.isEmail(user1.email.trim().toLowerCase())) {
+        return
+    }else{
+        let  user = await User.findOne({email:user1.email.trim().toLowerCase()})
+        if (user) {
+
+            return(   'error: "User already exists !"')
+
+        }else{
+            user = new User(user1);
+            user.level = 0
+            user.experience = 0
+            user.newLevelExperience = 0
+            user.email = user1.email.trim().toLowerCase();
+            if(user1.password){
+                user.password = await bcrypt.hash(user1.password, 12);
+                user.isVerified = false;
+            }else{
+                user.password = null
+                user.isVerified = true
+            }
+
+            await user.save()
+                .then(user => {
+                    console.log('wiouuuuu')
+                })
+
+        }
+
+    }
+}
 
 exports.changePassword = async (req, res) => {
     if (!req.params.id) {
@@ -365,20 +398,13 @@ exports.generateFeed = async (req, res) => {
             });
         }
         else{
-            console.log(user)
-
-            let products = user.followers.map(async follower => {
-                const result = await Product.find({owner: follower}).exec()
-                return result
-            })
-
-            for(let i = 0; i < products.length; i++){
-                products[i] = await products[i]
-            }
-            
-            console.log(products)
-
-            res.status(200).json({product: products.flat().reverse()});
+            let feed = await Product
+                .find({owner: {$in: user.followers}})
+                .sort({createdAt: -1})
+                .skip(req.params.step || 0)
+                .limit(3 + (req.params.step || 0))
+                .exec()
+            res.status(200).json({products: feed});
         }
     }
 }
