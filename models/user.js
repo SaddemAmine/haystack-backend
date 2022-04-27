@@ -25,7 +25,8 @@ const userSchema = new Schema({
       Number,
       default: 0
   },
-  googleId : String,
+    role : { type: String, default: "User" },
+    googleId : String,
   followers : [{type: Schema.Types.ObjectID, ref: 'User'}],
   products : [{type: Schema.Types.ObjectID, ref: 'Product'}]
 });

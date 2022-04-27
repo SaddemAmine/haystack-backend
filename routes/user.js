@@ -32,6 +32,9 @@ router.route('/:id/following/:followerId')
 router.route('/feed/:id/:step?')
     .get(userController.generateFeed)
 
+router.route('/grantrole')
+    .post(userController.grantRole)
+
 // router.route('/login/google')
 //     .get(passport.authenticate('google'))
 // .delete(userController.delete);

@@ -147,7 +147,7 @@ exports.login = async (req, res, next) => {
                 await res.json({
                     token: token,
                     user: user,
-                    role: 'User'
+                    role: user.role
                 });
             }
         }
@@ -177,7 +177,7 @@ exports.googleLogin = async (req, res) => {
         await res.json({
             token: token,
             user: user,
-            role: 'User'
+            role: user.role
         });
     }
 }
@@ -405,6 +405,25 @@ exports.generateFeed = async (req, res) => {
                 .limit(3)
                 .exec()
             res.status(200).json({products: feed});
+        }
+    }
+}
+
+exports.grantRole = async (req, res) => {
+    const user = await User.findById(req.body.id);
+    if (!user) {
+        await res.status(404).json({
+            error: "user not found"
+        });
+    }else{
+        try {
+            await User.updateOne(
+                {_id:user._id},
+                {$set:{role:req.body.role}}
+            )
+            res.status(200).json({message: "User role updated successfully!"});
+        }catch (e) {
+            res.status(500).json({error: e});
         }
     }
 }
