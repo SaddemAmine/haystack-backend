@@ -398,20 +398,13 @@ exports.generateFeed = async (req, res) => {
             });
         }
         else{
-            console.log(user)
-
-            let products = user.followers.map(async follower => {
-                const result = await Product.find({owner: follower}).exec()
-                return result
-            })
-
-            for(let i = 0; i < products.length; i++){
-                products[i] = await products[i]
-            }
-
-            console.log(products)
-
-            res.status(200).json({product: products.flat().reverse()});
+            let feed = await Product
+                .find({owner: {$in: user.followers}})
+                .sort({createdAt: -1})
+                .skip(req.params.step || 0)
+                .limit(3 + (req.params.step || 0))
+                .exec()
+            res.status(200).json({products: feed});
         }
     }
 }
