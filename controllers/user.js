@@ -402,7 +402,7 @@ exports.generateFeed = async (req, res) => {
                 .find({owner: {$in: user.followers}})
                 .sort({createdAt: -1})
                 .skip(req.params.step || 0)
-                .limit(3 + (req.params.step || 0))
+                .limit(3)
                 .exec()
             res.status(200).json({products: feed});
         }
