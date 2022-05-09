@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 
+const mongoose = require('mongoose');
+
 exports.getUserByEmail= async (req,res)=> {
     if (!req.params.email) {
         res.json({
@@ -56,6 +58,7 @@ exports.getUser = async (req, res, next) => {
             });
         }
         else {
+            // console.log(user)
             res.json({
                 user
             });
@@ -301,6 +304,7 @@ exports.followUser = async (req, res) => {
                         {_id:follower._id},
                         {$push:{following:user._id}}
                     )
+                    this.handleExperience(follower._id)
                     res.status(200).json({message: "User followed successfully!"});
                 }catch (e) {
                     res.status(500).json({error: e});
