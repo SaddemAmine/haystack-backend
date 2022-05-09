@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const User = require('../models/user');
+const userController = require('./user');
 const getColors = require('get-image-colors');
 const path = require("path");
 const rgbToHex = require("rgb-to-hex");
@@ -92,8 +93,7 @@ exports.create = async (req, res) => {
                 await res.json({product});
             });
 
-
-
+            await userController.handleExperience(req.userId);
         } catch (error) {
             console.log(error.message);
             await res.json({

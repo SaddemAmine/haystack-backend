@@ -1,12 +1,11 @@
-
-
-
 const User = require('../models/user');
 const Product = require('../models/product');
 
 const bcrypt = require('bcryptjs');
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
+
+const mongoose = require('mongoose');
 
 exports.getUserByEmail= async (req,res)=> {
     if (!req.params.email) {
@@ -59,6 +58,7 @@ exports.getUser = async (req, res, next) => {
             });
         }
         else {
+            // console.log(user)
             res.json({
                 user
             });
@@ -195,9 +195,6 @@ exports.createUser = async (req, res, next) => {
             })
         }else{
             user = new User(req.body);
-            user.level = 0
-            user.experience = 0
-            user.newLevelExperience = 0
             user.email = req.body.email.trim().toLowerCase();
             if(req.body.password){
                 user.password = await bcrypt.hash(req.body.password, 12);
@@ -307,6 +304,7 @@ exports.followUser = async (req, res) => {
                         {_id:follower._id},
                         {$push:{following:user._id}}
                     )
+                    this.handleExperience(follower._id)
                     res.status(200).json({message: "User followed successfully!"});
                 }catch (e) {
                     res.status(500).json({error: e});
@@ -426,4 +424,23 @@ exports.grantRole = async (req, res) => {
             res.status(500).json({error: e});
         }
     }
+}
+
+exports.handleExperience = async id => {
+    const user = await User.findById(id);
+    
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const exp = Math.floor(Math.random() * (user.newLevelExperience / 2)) + 1;
+    user.experience += exp;
+    if (user.experience > user.newLevelExperience) {
+        user.level++;
+        user.experience = 0;
+        user.newLevelExperience = Math.floor(user.newLevelExperience * 1.5); 
+    }
+
+    await user.save();
+    return user;
 }

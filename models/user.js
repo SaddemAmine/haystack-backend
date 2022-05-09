@@ -14,16 +14,16 @@ const userSchema = new Schema({
   bio : String,
   isVerified : Boolean,
   level : {
-      Number,
-      default: 0
+    type: Number,
+    default: 1
   },
   experience : {
-      Number,
-      default: 0
+    type: Number,
+    default: 0
   },
   newLevelExperience :{
-      Number,
-      default: 0
+    type: Number,
+    default: 30
   },
     role : { type: String, default: "User" },
     googleId : String,
