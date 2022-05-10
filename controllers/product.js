@@ -125,17 +125,6 @@ exports.edit = async (req, res, next) => {
                     await updatedProduct.save();
                     await res.json({updatedProduct});
                 });
-
-
-                const jsonPath = path.join(__dirname, '..', 'files', product.image);
-
-                // await ColorThief.getColor(jsonPath)
-                //     .then(async color => {
-                //         updatedProduct.color = await nearestColor('#' + rgbToHex(`rgb(${color[0]}, ${color[1]}, ${color[2]})`)).name;
-                //         await updatedProduct.save();
-                //         await res.json({updatedProduct});
-                //     })
-                //     .catch(err => { console.log(err) })
             }
         }
     } catch (error) {
