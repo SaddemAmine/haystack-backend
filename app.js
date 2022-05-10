@@ -15,6 +15,11 @@ const io = require("socket.io")(server, {
         methods: [ "GET", "POST" ]
     }
 })
+
+const dotenv = require('dotenv');
+
+dotenv.config();
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
